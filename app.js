@@ -1,17 +1,23 @@
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
 import { connectDB } from "./src/config/database.js";
+import { authRouter } from "./src/routes/auth.routes.js";
 
 dotenv.config();
 
 const app = express();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+// Rutas
+app.use("/api/auth", authRouter);
 
 app.get("/", (req, res) => {
     return res.status(200).json({
@@ -28,8 +34,10 @@ const startServer = async () => {
         app.listen(PORT, () => {
             console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
         });
+
     } catch (error) {
         console.error("Error al iniciar el servidor:", error.message);
+        process.exit(1);
     }
 };
 
