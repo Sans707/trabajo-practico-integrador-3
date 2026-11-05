@@ -2,12 +2,21 @@
 import { Router } from "express";
 import { body } from "express-validator";
 
-import { register, login } from "../controllers/auth.controller.js";
+import {
+    register,
+    login,
+    getProfile,
+    updateProfile,
+    logout
+} from "../controllers/auth.controller.js";
+
 import { validateFields } from "../middlewares/validation.middleware.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 export const authRouter = Router();
 
-// REGISTRO
+
+
 authRouter.post(
     "/register",
     [
@@ -50,9 +59,9 @@ authRouter.post(
             .bail()
             .trim()
             .isLength({ min: 2, max: 50 })
-            .withMessage("Nombre entre 2 y 50 caracteres")
+            .withMessage("El nombre debe tener entre 2 y 50 caracteres")
             .matches(/^[\p{L} ]+$/u)
-            .withMessage("El nombre debe contener solo letras"),
+            .withMessage("El nombre solo debe contener letras"),
 
         body("profile.lastName")
             .isString()
@@ -60,9 +69,9 @@ authRouter.post(
             .bail()
             .trim()
             .isLength({ min: 2, max: 50 })
-            .withMessage("Apellido entre 2 y 50 caracteres")
+            .withMessage("El apellido debe tener entre 2 y 50 caracteres")
             .matches(/^[\p{L} ]+$/u)
-            .withMessage("El apellido debe contener solo letras"),
+            .withMessage("El apellido solo debe contener letras"),
 
         body("profile.birthDate")
             .optional()
@@ -72,6 +81,7 @@ authRouter.post(
         body("profile.phone")
             .optional()
             .isString()
+            .withMessage("El teléfono debe ser texto")
             .bail()
             .trim()
             .matches(/^[0-9]{8,15}$/)
@@ -80,14 +90,15 @@ authRouter.post(
         body("role")
             .not()
             .exists()
-            .withMessage("No se puede asignar un rol en el registro público"),
+            .withMessage("No se puede asignar un rol desde el registro público"),
 
         validateFields
     ],
     register
 );
 
-// LOGIN
+
+
 authRouter.post(
     "/login",
     [
@@ -107,4 +118,67 @@ authRouter.post(
         validateFields
     ],
     login
+);
+
+
+
+authRouter.get(
+    "/profile",
+    authMiddleware,
+    getProfile
+);
+
+
+
+authRouter.put(
+    "/profile",
+    authMiddleware,
+    [
+        body("profile.firstName")
+            .optional()
+            .isString()
+            .withMessage("El nombre debe ser texto")
+            .bail()
+            .trim()
+            .isLength({ min: 2, max: 50 })
+            .withMessage("El nombre debe tener entre 2 y 50 caracteres")
+            .matches(/^[\p{L} ]+$/u)
+            .withMessage("El nombre solo puede contener letras"),
+
+        body("profile.lastName")
+            .optional()
+            .isString()
+            .withMessage("El apellido debe ser texto")
+            .bail()
+            .trim()
+            .isLength({ min: 2, max: 50 })
+            .withMessage("El apellido debe tener entre 2 y 50 caracteres")
+            .matches(/^[\p{L} ]+$/u)
+            .withMessage("El apellido solo puede contener letras"),
+
+        body("profile.birthDate")
+            .optional()
+            .isISO8601({ strict: true })
+            .withMessage("Fecha de nacimiento inválida"),
+
+        body("profile.phone")
+            .optional()
+            .isString()
+            .withMessage("El teléfono debe ser texto")
+            .bail()
+            .trim()
+            .matches(/^[0-9]{8,15}$/)
+            .withMessage("El teléfono debe tener entre 8 y 15 números"),
+
+        validateFields
+    ],
+    updateProfile
+);
+
+
+
+authRouter.post(
+    "/logout",
+    authMiddleware,
+    logout
 );

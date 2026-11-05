@@ -4,12 +4,11 @@ import { UserModel } from "../models/user.model.js";
 import { hashPassword, comparePassword } from "../helpers/bcrypt.helper.js";
 import { generateToken } from "../helpers/jwt.helper.js";
 
-// REGISTRAR USUARIO
+
 export const register = async (req, res) => {
     try {
         const { username, email, password, profile } = matchedData(req);
 
-        // Verificar si ya existe el username o email
         const existingUser = await UserModel.findOne({
             $or: [{ username }, { email }]
         });
@@ -20,10 +19,8 @@ export const register = async (req, res) => {
             });
         }
 
-        // Hashear contraseña
         const hashedPassword = await hashPassword(password);
 
-        // Crear usuario
         const newUser = await UserModel.create({
             username,
             email,
@@ -50,6 +47,13 @@ export const register = async (req, res) => {
             });
         }
 
+        if (error.name === "ValidationError") {
+            return res.status(400).json({
+                msg: "Datos de usuario inválidos",
+                error: error.message
+            });
+        }
+
         console.error("Error en registro:", error);
 
         return res.status(500).json({
@@ -58,12 +62,12 @@ export const register = async (req, res) => {
     }
 };
 
-// INICIAR SESIÓN
+
 export const login = async (req, res) => {
     try {
         const { email, password } = matchedData(req);
 
-        // Buscar usuario activo
+     
         const user = await UserModel.findOne({
             email,
             deletedAt: null
@@ -75,7 +79,7 @@ export const login = async (req, res) => {
             });
         }
 
-        // Comparar contraseña
+       
         const validPassword = await comparePassword(
             password,
             user.password
@@ -87,13 +91,13 @@ export const login = async (req, res) => {
             });
         }
 
-        // Generar JWT
+        
         const token = generateToken({
             id: user._id.toString(),
             role: user.role
         });
 
-        // Guardar JWT en una cookie httpOnly
+      
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -116,6 +120,106 @@ export const login = async (req, res) => {
 
         return res.status(500).json({
             msg: "Error interno al iniciar sesión"
+        });
+    }
+};
+
+
+export const getProfile = async (req, res) => {
+    try {
+        const user = req.user;
+
+        return res.status(200).json({
+            msg: "Perfil obtenido correctamente",
+            data: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                profile: user.profile
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al obtener perfil:", error);
+
+        return res.status(500).json({
+            msg: "Error interno al obtener el perfil"
+        });
+    }
+};
+
+
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profile = {} } = matchedData(req);
+
+      
+        if (Object.keys(profile).length === 0) {
+            return res.status(400).json({
+                msg: "Debés enviar al menos un campo del perfil"
+            });
+        }
+
+        const user = req.user;
+
+      
+        for (const [field, value] of Object.entries(profile)) {
+            user.set(`profile.${field}`, value);
+        }
+
+      
+        await user.save();
+
+        return res.status(200).json({
+            msg: "Perfil actualizado correctamente",
+            data: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                profile: user.profile
+            }
+        });
+
+    } catch (error) {
+        if (error.name === "ValidationError") {
+            return res.status(400).json({
+                msg: "Datos del perfil inválidos",
+                error: error.message
+            });
+        }
+
+        console.error("Error al actualizar perfil:", error);
+
+        return res.status(500).json({
+            msg: "Error interno al actualizar el perfil"
+        });
+    }
+};
+
+
+
+export const logout = async (req, res) => {
+    try {
+        
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/"
+        });
+
+        return res.status(200).json({
+            msg: "Sesión cerrada correctamente"
+        });
+
+    } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+
+        return res.status(500).json({
+            msg: "Error interno al cerrar sesión"
         });
     }
 };
