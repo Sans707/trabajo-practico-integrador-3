@@ -1,0 +1,108 @@
+
+import mongoose from "mongoose";
+
+
+const profileSchema = new mongoose.Schema(
+    {
+        firstName: {
+            type: String,
+            required: true,
+            minlength: 2,
+            maxlength: 50,
+            trim: true,
+            match: /^[\p{L} ]+$/u
+        },
+
+        lastName: {
+            type: String,
+            required: true,
+            minlength: 2,
+            maxlength: 50,
+            trim: true,
+            match: /^[\p{L} ]+$/u
+        },
+
+        birthDate: {
+            type: Date,
+            required: false
+        },
+
+        phone: {
+            type: String,
+            required: false,
+            trim: true,
+            match: /^[0-9]{8,15}$/
+        }
+    },
+    {
+        _id: false
+    }
+);
+
+
+const userSchema = new mongoose.Schema(
+    {
+        username: {
+            type: String,
+            required: true,
+            unique: true,
+            minlength: 3,
+            maxlength: 20,
+            trim: true,
+            match: /^[a-zA-Z0-9]+$/
+        },
+
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        },
+
+        password: {
+            type: String,
+            required: true
+        },
+
+        role: {
+            type: String,
+            enum: ["user", "admin"],
+            default: "user"
+        },
+
+        profile: {
+            type: profileSchema,
+            required: true
+        },
+
+        deletedAt: {
+            type: Date,
+            default: null
+        }
+    },
+    {
+        timestamps: true,
+        versionKey: false,
+        toJSON: {
+            virtuals: true
+        },
+        toObject: {
+            virtuals: true
+        }
+    }
+);
+
+
+userSchema.virtual("events", {
+    ref: "Event",
+    localField: "_id",
+    foreignField: "organizer"
+});
+
+
+export const UserModel = mongoose.model(
+    "User",
+    userSchema
+);
