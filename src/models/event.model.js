@@ -1,4 +1,6 @@
+
 import mongoose from "mongoose";
+
 
 const locationSchema = new mongoose.Schema(
     {
@@ -31,6 +33,7 @@ const locationSchema = new mongoose.Schema(
     }
 );
 
+
 const eventSchema = new mongoose.Schema(
     {
         title: {
@@ -56,7 +59,18 @@ const eventSchema = new mongoose.Schema(
 
         endDate: {
             type: Date,
-            required: true
+            required: true,
+            validate: {
+                validator: function(value) {
+                    if (!this.startDate || !value) {
+                        return false;
+                    }
+
+                    return value.getTime() >
+                        this.startDate.getTime();
+                },
+                message: "La fecha de finalización debe ser posterior a la fecha de inicio"
+            }
         },
 
         capacity: {
@@ -104,6 +118,7 @@ const eventSchema = new mongoose.Schema(
         versionKey: false
     }
 );
+
 
 export const EventModel = mongoose.model(
     "Event",

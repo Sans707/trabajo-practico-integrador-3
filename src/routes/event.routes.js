@@ -14,7 +14,7 @@ import {
 
 import { CategoryModel } from "../models/category.model.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { ownerOrAdminMiddleware } from "../middlewares/ownerOrAdmin.middleware.js";
+import { ownerOrAdminMiddleware } from "../middlewares/owner.middleware.js";
 import { validateFields } from "../middlewares/validation.middleware.js";
 
 export const eventRouter = Router();

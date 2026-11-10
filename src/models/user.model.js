@@ -1,4 +1,6 @@
+
 import mongoose from "mongoose";
+
 
 const profileSchema = new mongoose.Schema(
     {
@@ -7,7 +9,8 @@ const profileSchema = new mongoose.Schema(
             required: true,
             minlength: 2,
             maxlength: 50,
-            trim: true
+            trim: true,
+            match: /^[\p{L} ]+$/u
         },
 
         lastName: {
@@ -15,7 +18,8 @@ const profileSchema = new mongoose.Schema(
             required: true,
             minlength: 2,
             maxlength: 50,
-            trim: true
+            trim: true,
+            match: /^[\p{L} ]+$/u
         },
 
         birthDate: {
@@ -26,13 +30,15 @@ const profileSchema = new mongoose.Schema(
         phone: {
             type: String,
             required: false,
-            trim: true
+            trim: true,
+            match: /^[0-9]{8,15}$/
         }
     },
     {
         _id: false
     }
 );
+
 
 const userSchema = new mongoose.Schema(
     {
@@ -42,15 +48,17 @@ const userSchema = new mongoose.Schema(
             unique: true,
             minlength: 3,
             maxlength: 20,
-            trim: true
+            trim: true,
+            match: /^[a-zA-Z0-9]+$/
         },
 
         email: {
             type: String,
             required: true,
             unique: true,
+            lowercase: true,
             trim: true,
-            lowercase: true
+            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         },
 
         password: {
@@ -86,10 +94,15 @@ const userSchema = new mongoose.Schema(
     }
 );
 
+
 userSchema.virtual("events", {
     ref: "Event",
     localField: "_id",
     foreignField: "organizer"
 });
 
-export const UserModel = mongoose.model("User", userSchema);
+
+export const UserModel = mongoose.model(
+    "User",
+    userSchema
+);
