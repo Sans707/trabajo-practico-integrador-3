@@ -9,10 +9,12 @@ import { connectDB } from "./src/config/database.js";
 import { authRouter } from "./src/routes/auth.routes.js";
 import { userRouter } from "./src/routes/user.routes.js";
 import { categoryRouter } from "./src/routes/category.routes.js";
+import { eventRouter } from "./src/routes/event.routes.js";
 
 dotenv.config();
 
 const app = express();
+
 
 app.use(cors());
 app.use(express.json());
@@ -22,6 +24,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/categories", categoryRouter);
+app.use("/api/events", eventRouter);
 
 
 app.get("/", (req, res) => {
